@@ -9,6 +9,7 @@ ENV KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE=false
 ENV KAFKA_PROCESS_ROLES=broker
 ENV KAFKA_KRAFT_LOG_DIRS=/var/lib/kafka/data
 ENV KAFKA_METADATA_LOG_DIRS=/var/lib/kafka/meta
+ENV KAFKA_CLUSTER_ID=ben-kafka-cluster
 
 # Create data directories
 RUN mkdir -p /var/lib/kafka/data /var/lib/kafka/meta
