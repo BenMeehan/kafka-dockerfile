@@ -1,18 +1,22 @@
-FROM confluentinc/cp-kafka:latest
+# Use the Confluent Kafka image
+FROM confluentinc/cp-kafka:7.7.1
 
-# Set up environment variables for KRaft
-ENV KAFKA_KRAFT_MODE=true
-ENV KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
-ENV KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
-ENV KAFKA_LOG_DIRS=/var/lib/kafka/data
-ENV KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE=false
-ENV KAFKA_PROCESS_ROLES=broker
-ENV KAFKA_KRAFT_LOG_DIRS=/var/lib/kafka/data
-ENV KAFKA_METADATA_LOG_DIRS=/var/lib/kafka/meta
-ENV CLUSTER_ID=ben-kafka-cluster
+# Set environment variables for Kafka
+ENV KAFKA_NODE_ID=1 \
+    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP='PLAINTEXT:PLAINTEXT' \
+    KAFKA_ADVERTISED_LISTENERS='PLAINTEXT://kafka-kraft:29092,PLAINTEXT_HOST://localhost:9092' \
+    KAFKA_JMX_PORT=9101 \
+    KAFKA_JMX_HOSTNAME=localhost \
+    KAFKA_PROCESS_ROLES='broker,controller' \
+    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
+    KAFKA_CONTROLLER_QUORUM_VOTERS='1@kafka-kraft:29093' \
+    KAFKA_LISTENERS='PLAINTEXT://kafka-kraft:29092,CONTROLLER://kafka-kraft:29093,PLAINTEXT_HOST://0.0.0.0:9092' \
+    KAFKA_INTER_BROKER_LISTENER_NAME='PLAINTEXT' \
+    KAFKA_CONTROLLER_LISTENER_NAMES='CONTROLLER' \
+    CLUSTER_ID='MkU3OEVBNTcwNTJENDM2Qk'
 
-# Create data directories
-RUN mkdir -p /var/lib/kafka/data /var/lib/kafka/meta
+# Expose necessary ports
+EXPOSE 9092 9101
 
-# Expose Kafka port
-EXPOSE 9092
+# Start Kafka
+CMD ["bash", "-c", "/etc/confluent/docker/run"]
