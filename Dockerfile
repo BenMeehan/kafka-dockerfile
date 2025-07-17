@@ -1,25 +1,40 @@
-# Use the Confluent Kafka image
-FROM confluentinc/cp-kafka:7.7.1
+version: '3'
+services:
+  kafka:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CLUSTER_ID: ben-kafka-kraft-ewfd3r423rfds
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
 
-# Set environment variables for Kafka
-ENV KAFKA_NODE_ID=1 \
-    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP='CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT' \
-    KAFKA_ADVERTISED_LISTENERS='PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092' \
-    KAFKA_JMX_PORT=9101 \
-    KAFKA_JMX_HOSTNAME=localhost \
-    KAFKA_PROCESS_ROLES='broker,controller' \
-    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
-    KAFKA_CONTROLLER_QUORUM_VOTERS='1@localhost:29093' \
-    KAFKA_LISTENERS='PLAINTEXT://localhost:29092,CONTROLLER://localhost:29093,PLAINTEXT_HOST://0.0.0.0:9092' \
-    KAFKA_INTER_BROKER_LISTENER_NAME='PLAINTEXT' \
-    KAFKA_CONTROLLER_LISTENER_NAMES='CONTROLLER' \
-    CLUSTER_ID='ben-kafka-kraft-ewfd3r423rfds' \
-    KAFKA_MAX_REQUEST_SIZE=209715200 \ 
-    KAFKA_MESSAGE_MAX_BYTES=209715200 \ 
-    KAFKA_REPLICA_FETCH_MAX_BYTES=209715200
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      DYNAMIC_CONFIG_ENABLED: 'true'
 
-# Expose necessary ports
-EXPOSE 9092 9101
-
-# Start Kafka
-CMD ["bash", "-c", "/etc/confluent/docker/run"]
+volumes:
+  kafka_data:
+    driver: local
